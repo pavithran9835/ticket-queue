@@ -16,6 +16,14 @@ export const notFoundRoute: RequestHandler = (req, _res, next) => {
   next(new ApiError(404, "ROUTE_NOT_FOUND", `No route for ${req.method} ${req.originalUrl.split("?")[0]}`));
 };
 
+/** Responds 405 with an Allow header for methods a route does not support. */
+export const methodNotAllowed =
+  (...allowed: string[]): RequestHandler =>
+  (req, res, next) => {
+    res.set("Allow", allowed.join(", "));
+    next(new ApiError(405, "METHOD_NOT_ALLOWED", `${req.method} is not supported here; use ${allowed.join(" or ")}`));
+  };
+
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ApiError) {
     res.status(err.status).json({

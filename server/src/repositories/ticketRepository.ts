@@ -1,6 +1,7 @@
 import type { Db } from "../db.js";
 import type { Paginated, TicketComment, TicketDetail, TicketListItem, TicketPriority, TicketStatus } from "../domain.js";
 import type { ListTicketsQuery } from "../validation.js";
+import { userExists } from "./userRepository.js";
 
 /*
  * All SQL here is static text with bound parameters. No user input is ever concatenated into SQL;
@@ -113,4 +114,63 @@ export function getTicket(db: Db, id: number): TicketDetail | undefined {
       }),
     ),
   };
+}
+
+export interface TicketChanges {
+  status?: TicketStatus;
+  /** undefined = leave unchanged, null = unassign */
+  assigneeId?: number | null;
+}
+
+export type UpdateResult =
+  | { kind: "updated"; ticket: TicketDetail }
+  | { kind: "not_found" }
+  | { kind: "unknown_assignee" }
+  | { kind: "conflict"; current: TicketDetail };
+
+/** Current time as ISO 8601 UTC without milliseconds, matching the seeded timestamps. */
+const nowIso = () => new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+
+/**
+ * Optimistic-concurrency update.
+ *
+ * The version check and the write are ONE statement: `UPDATE … WHERE id = @id AND version = @version`.
+ * SQLite executes it atomically, so two clients holding the same version cannot both succeed — the
+ * second matches zero rows. Only fields that were sent are changed (CASE WHEN @setX …), so a status-only
+ * update can never overwrite a concurrently changed assignee or vice versa.
+ *
+ * If no row changed we find out why (missing vs. stale) inside the same transaction, so the "current"
+ * ticket returned with a conflict is a consistent snapshot.
+ */
+export function updateTicket(db: Db, id: number, expectedVersion: number, changes: TicketChanges): UpdateResult {
+  const run = db.transaction((): UpdateResult => {
+    if (typeof changes.assigneeId === "number" && !userExists(db, changes.assigneeId)) {
+      const ticketExists = db.prepare("SELECT 1 FROM tickets WHERE id = ?").get(id) !== undefined;
+      return ticketExists ? { kind: "unknown_assignee" } : { kind: "not_found" };
+    }
+    const info = db
+      .prepare(
+        `UPDATE tickets
+         SET status      = CASE WHEN @setStatus   THEN @status     ELSE status      END,
+             assignee_id = CASE WHEN @setAssignee THEN @assigneeId ELSE assignee_id END,
+             version     = version + 1,
+             updated_at  = @updatedAt
+         WHERE id = @id AND version = @expectedVersion`,
+      )
+      .run({
+        id,
+        expectedVersion,
+        setStatus: changes.status !== undefined ? 1 : 0,
+        status: changes.status ?? null,
+        setAssignee: changes.assigneeId !== undefined ? 1 : 0,
+        assigneeId: changes.assigneeId ?? null,
+        updatedAt: nowIso(),
+      });
+
+    const current = getTicket(db, id);
+    if (info.changes === 1) return { kind: "updated", ticket: current! };
+    if (!current) return { kind: "not_found" };
+    return { kind: "conflict", current };
+  });
+  return run.immediate(); // BEGIN IMMEDIATE: take the write lock up front, safe across processes/connections
 }
