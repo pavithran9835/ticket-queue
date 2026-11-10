@@ -1,6 +1,8 @@
 import express from "express";
 import type { Db } from "./db.js";
 import { errorHandler, notFoundRoute } from "./errors.js";
+import { ticketsRouter } from "./routes/tickets.js";
+import { usersRouter } from "./routes/users.js";
 
 export interface AppOptions {
   /** Log one line per request (disabled in tests). */
@@ -27,6 +29,9 @@ export function createApp(db: Db, options: AppOptions = {}) {
     db.prepare("SELECT 1").get(); // proves the database is reachable, not just the process
     res.json({ status: "ok" });
   });
+
+  app.use("/api/tickets", ticketsRouter(db));
+  app.use("/api/users", usersRouter(db));
 
   app.use("/api", notFoundRoute);
   app.use(errorHandler);
