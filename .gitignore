@@ -6,3 +6,4 @@ coverage/
 # Working copy of the database used by the running app (recreated from the supplied file)
 data/tickets.dev.sqlite
 data/tickets.dev.sqlite-*
+.claude/

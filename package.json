@@ -19,5 +19,9 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "vite": "^8.3.7",
+    "jsdom": "^26.1.0"
   }
 }

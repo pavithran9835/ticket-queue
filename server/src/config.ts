@@ -11,4 +11,4 @@ export const DB_PATH = process.env.DB_PATH
   ? path.resolve(process.env.DB_PATH)
   : path.join(repoRoot, "data", "tickets.dev.sqlite");
 
-export const PORT = Number(process.env.PORT ?? 3001);
+export const PORT = Number(process.env.API_PORT ?? 3001);
