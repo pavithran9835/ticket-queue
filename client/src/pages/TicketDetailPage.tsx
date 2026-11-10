@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { ConflictDetails } from "../api/types";
-import { PriorityBadge, StatusBadge } from "../components/Badges";
+import { Avatar } from "../components/Avatar";
 import { ConflictNotice } from "../components/ConflictNotice";
 import { ErrorMessage } from "../components/ErrorMessage";
-import { formatDateTime } from "../components/format";
+import { formatDateTime, formatRelative } from "../components/format";
+import { SuccessIcon, TicketIcon } from "../components/Icons";
 import { TicketUpdateForm, type TicketChanges } from "../components/TicketUpdateForm";
 import { useAsync } from "../hooks/useAsync";
 
@@ -52,15 +53,23 @@ export function TicketDetailPage() {
   const loading = ticket.state.status === "loading";
 
   return (
-    <main>
-      <p>
-        <Link to={backTo}>← Back to tickets</Link>
-      </p>
+    <main className="page">
+      <nav className="breadcrumbs" aria-label="Breadcrumb">
+        <Link to={backTo}>Tickets</Link>
+        <span aria-hidden>/</span>
+        <span className="breadcrumb-key">
+          <TicketIcon className="key-icon" width={14} height={14} />#{Number.isInteger(id) ? id : "?"}
+        </span>
+      </nav>
 
       {loading && !t && (
-        <p className="message info" role="status">
-          Loading ticket…
-        </p>
+        <>
+          <span className="visually-hidden" role="status">
+            Loading ticket…
+          </span>
+          <div className="skeleton skeleton-title" aria-hidden />
+          <div className="skeleton skeleton-block" aria-hidden />
+        </>
       )}
       {ticket.state.status === "error" && (
         <ErrorMessage
@@ -71,67 +80,10 @@ export function TicketDetailPage() {
       )}
 
       {t && ticket.state.status !== "error" && (
-        <article aria-busy={loading}>
-          <h1>
-            #{t.id} {t.title}
-          </h1>
+        <div className="issue-layout" aria-busy={loading}>
+          <article className="issue-main">
+            <h1 className="issue-heading">{t.title}</h1>
 
-          <dl className="ticket-fields">
-            <dt>Status</dt>
-            <dd>
-              <StatusBadge status={t.status} />
-            </dd>
-            <dt>Priority</dt>
-            <dd>
-              <PriorityBadge priority={t.priority} />
-            </dd>
-            <dt>Assignee</dt>
-            <dd>{t.assignee?.name ?? <em>Unassigned</em>}</dd>
-            <dt>Created</dt>
-            <dd>
-              <time dateTime={t.createdAt} title={t.createdAt}>
-                {formatDateTime(t.createdAt)}
-              </time>
-            </dd>
-            <dt>Last updated</dt>
-            <dd>
-              <time dateTime={t.updatedAt} title={t.updatedAt}>
-                {formatDateTime(t.updatedAt)}
-              </time>
-            </dd>
-            <dt>Version</dt>
-            <dd>{t.version}</dd>
-          </dl>
-
-          <section>
-            <h2>Description</h2>
-            <p className="description">{t.description}</p>
-          </section>
-
-          <section>
-            <h2>Update</h2>
-            {users.state.status === "error" && (
-              <ErrorMessage title="Could not load assignees." error={users.state.error} onRetry={users.reload} />
-            )}
-            <TicketUpdateForm
-              key={`${t.id}-${t.version}`}
-              ticket={t}
-              users={users.state.data}
-              usersError={users.state.status === "error"}
-              disabled={save.kind === "saving" || save.kind === "conflict" || loading}
-              onSubmit={handleSave}
-            />
-            {save.kind === "saving" && (
-              <p className="message info" role="status">
-                Saving…
-              </p>
-            )}
-            {save.kind === "saved" && (
-              <p className="message success" role="status">
-                Changes saved (now version {t.version}).
-              </p>
-            )}
-            {save.kind === "error" && <ErrorMessage title="Your changes were not saved." error={save.error} />}
             {save.kind === "conflict" && (
               <ConflictNotice
                 details={save.details}
@@ -142,29 +94,83 @@ export function TicketDetailPage() {
                 reloading={loading}
               />
             )}
-          </section>
 
-          <section>
-            <h2>Comments ({t.comments.length})</h2>
-            {t.comments.length === 0 ? (
-              <p className="muted">No comments on this ticket.</p>
-            ) : (
-              <ol className="comments">
-                {t.comments.map((c) => (
-                  <li key={c.id}>
-                    <div className="comment-meta">
-                      <strong>{c.author.name}</strong> ·{" "}
-                      <time dateTime={c.createdAt} title={c.createdAt}>
-                        {formatDateTime(c.createdAt)}
-                      </time>
-                    </div>
-                    <p>{c.body}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
-        </article>
+            <section className="issue-section">
+              <h2>Description</h2>
+              <p className="description">{t.description}</p>
+            </section>
+
+            <section className="issue-section">
+              <h2>
+                Comments <span className="count-badge">{t.comments.length}</span>
+              </h2>
+              {t.comments.length === 0 ? (
+                <p className="muted">No comments on this ticket.</p>
+              ) : (
+                <ol className="comments">
+                  {t.comments.map((c) => (
+                    <li key={c.id} className="comment">
+                      <Avatar user={c.author} size="medium" />
+                      <div>
+                        <div className="comment-meta">
+                          <strong>{c.author.name}</strong>
+                          <time dateTime={c.createdAt} title={formatDateTime(c.createdAt)} className="muted">
+                            {formatDateTime(c.createdAt)}
+                          </time>
+                        </div>
+                        <p>{c.body}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          </article>
+
+          <aside className="issue-sidebar">
+            <section className="panel">
+              <h2 className="panel-title">Details</h2>
+              {users.state.status === "error" && (
+                <ErrorMessage title="Could not load assignees." error={users.state.error} onRetry={users.reload} />
+              )}
+              <TicketUpdateForm
+                key={`${t.id}-${t.version}`}
+                ticket={t}
+                users={users.state.data}
+                usersError={users.state.status === "error"}
+                disabled={save.kind === "saving" || save.kind === "conflict" || loading}
+                saving={save.kind === "saving"}
+                onSubmit={handleSave}
+              />
+              {save.kind === "saved" && (
+                <div className="section-message success compact" role="status">
+                  <SuccessIcon className="section-message-icon" />
+                  <div className="section-message-body">Changes saved (now version {t.version}).</div>
+                </div>
+              )}
+              {save.kind === "error" && <ErrorMessage title="Your changes were not saved." error={save.error} />}
+
+              <dl className="detail-fields">
+                <dt>Ticket ID</dt>
+                <dd>{t.id}</dd>
+                <dt>Created</dt>
+                <dd>
+                  <time dateTime={t.createdAt} title={formatDateTime(t.createdAt)}>
+                    {formatDateTime(t.createdAt)}
+                  </time>
+                </dd>
+                <dt>Last updated</dt>
+                <dd>
+                  <time dateTime={t.updatedAt} title={formatRelative(t.updatedAt)}>
+                    {formatDateTime(t.updatedAt)}
+                  </time>
+                </dd>
+                <dt>Version</dt>
+                <dd>{t.version}</dd>
+              </dl>
+            </section>
+          </aside>
+        </div>
       )}
     </main>
   );

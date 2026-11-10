@@ -40,7 +40,11 @@ describe("TicketListPage", () => {
     expect(cells.slice(0, 5)).toEqual(["#1", row.title, "Critical", "In progress", "Daniel Tan"]);
     expect(within(first).getByRole("time")).toHaveAttribute("dateTime", row.updatedAt);
     expect(within(second).getByText("Unassigned")).toBeInTheDocument();
-    expect(screen.getByText("Page 1 of 2 · 12 tickets")).toBeInTheDocument();
+    const pager = screen.getByRole("navigation", { name: "Pagination" });
+    expect(pager).toHaveTextContent("1–2 of 12");
+    expect(pager).toHaveTextContent("Page 1 of 2");
+    expect(within(pager).getByRole("button", { name: "Previous page" })).toBeDisabled();
+    expect(within(pager).getByRole("button", { name: "Next page" })).toBeEnabled();
   });
 
   it("passes filters from the URL to the server", async () => {

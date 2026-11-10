@@ -1,4 +1,5 @@
 import { STATUS_LABELS, type ConflictDetails, type TicketDetail, type UserSummary } from "../api/types";
+import { WarningIcon } from "./Icons";
 import type { TicketChanges } from "./TicketUpdateForm";
 
 interface Props {
@@ -36,10 +37,12 @@ export function ConflictNotice({ details, loaded, attempted, users, onReload, re
   ].filter((r) => r.yours !== undefined || r.opened !== r.latest);
 
   return (
-    <div className="message conflict" role="alert">
-      <strong>Your changes were not saved.</strong> Someone else updated this ticket after you opened it (you were
-      editing version {details.yourVersion}; the latest is version {details.currentVersion}).
-      <table>
+    <div className="section-message warning" role="alert">
+      <WarningIcon className="section-message-icon" />
+      <div className="section-message-body">
+      <strong className="section-message-title">Your changes were not saved.</strong> Someone else updated this ticket
+      after you opened it (you were editing version {details.yourVersion}; the latest is version {details.currentVersion}).
+      <table className="conflict-table">
         <thead>
           <tr>
             <th scope="col">Field</th>
@@ -62,9 +65,12 @@ export function ConflictNotice({ details, loaded, attempted, users, onReload, re
         </tbody>
       </table>
       <p>Reload the latest version, check it, and apply your change again if it is still needed.</p>
-      <button type="button" onClick={onReload} disabled={reloading}>
-        {reloading ? "Reloading…" : "Reload latest ticket"}
-      </button>
+      <div className="section-message-actions">
+        <button type="button" className="button primary" onClick={onReload} disabled={reloading}>
+          {reloading ? "Reloading…" : "Reload latest ticket"}
+        </button>
+      </div>
+      </div>
     </div>
   );
 }

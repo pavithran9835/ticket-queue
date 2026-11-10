@@ -25,10 +25,12 @@ describe("TicketDetailPage", () => {
     });
     renderPage();
     expect(screen.getByText("Loading ticket…")).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: /#7 API returns 500/ })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "API returns 500 for malformed date filter" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toHaveTextContent("#7");
     expect(screen.getByText("Steps to reproduce…")).toBeInTheDocument();
     expect(screen.getByText("Looking into it")).toBeInTheDocument();
-    expect(screen.getByText("Comments (1)")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Comments 1" })).toBeInTheDocument();
+    expect(screen.getByText("Medium")).toBeInTheDocument(); // priority shown (read-only)
   });
 
   it("sends only the changed field with the loaded version and confirms the save", async () => {

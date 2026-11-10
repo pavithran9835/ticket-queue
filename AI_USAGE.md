@@ -15,6 +15,7 @@ tests, drove the app in a browser, and made git commits. Its process is logged i
 | Optimistic concurrency (conditional UPDATE, 409 response) | Written |
 | API tests, including the multi-process race test | Written |
 | React UI: list, detail, update form, conflict notice | Written |
+| UI redesign in an issue-tracker style (layout, icons, avatars, styles) | Written |
 | UI component tests | Written |
 | Manual end-to-end verification in a browser and with curl | Performed |
 | README, API docs | Drafted |

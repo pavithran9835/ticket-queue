@@ -135,7 +135,11 @@ fast and makes transactions straightforward.
   The server copy is checked against the database schema by a test, but the client copy is not.
 - Search uses `LIKE '%term%'`, which cannot use an index. That's fine for 30 rows, not for a large table.
 - No production build or serving setup. Only the dev servers are configured (deployment was out of scope).
-- Basic styling only. The layout is not designed for mobile (out of scope).
+- The UI is styled like a typical issue tracker (top bar, queue sidebar, issue table, details panel) using plain CSS
+  with design tokens in `client/src/styles.css`, with no UI component library to keep dependencies small. It is
+  desktop-first; below 960px the sidebar hides and the detail columns stack, but mobile was out of scope.
+- Native `<select>` elements are used for status and assignee (accessible and keyboard-friendly) rather than
+  custom dropdowns with avatars inside the options.
 
 ## What I would improve with more time
 
