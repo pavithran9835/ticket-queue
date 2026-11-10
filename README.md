@@ -155,7 +155,11 @@ fast and makes transactions straightforward.
 
 ## Time spent
 
-**Approximately _[fill in]_ hours.** _[Candidate: state the time and any unfinished work here.]_
+**Approximately 1 hour** in total, well inside the 6-hour limit: about 35 minutes of AI-assisted building
+(first commit to final UI commit, 10 Nov 2026), plus reading the brief, reviewing and testing the result.
+
+**Unfinished work:** none of the required or intermediate items. Ideas beyond the brief are listed under
+"What I would improve with more time".
 
 ## AI usage
 

@@ -22,9 +22,18 @@ tests, drove the app in a browser, and made git commits. Its process is logged i
 
 ## What I did
 
-_[Candidate: fill in honestly, e.g. chose the stack and the process the AI had to follow (plan → implement →
-verify → test → record per point), reviewed the code and design decisions, ran the app myself, edited the docs …]_
+- Chose the stack (React, Node.js + Express, the supplied SQLite file via better-sqlite3) and ruled out other
+  databases or migrating the data.
+- Defined the working process the AI had to follow for every point: plan → implement → verify against the brief →
+  run the tests and exercise the real app → record evidence → commit. Also set the rules: no stubbed or faked
+  requirements, never mark an item done without verification and a passing test, never modify the supplied
+  database during tests.
+- Required a complete requirements checklist up front and a final audit with a clean-install run.
+- After the functional work was done, asked for the UI to be redesigned in a professional issue-tracker style.
+- Checked that the app reads the supplied SQLite file rather than static data, then reviewed the result, ran the
+  tests and tried the conflict scenario myself.
 
 ## Overall AI contribution
 
-**Approximately _[fill in]_ % of the code and documentation was produced by AI.**
+**Approximately 95% of the code and documentation was produced by AI.** My contribution was the direction,
+the constraints and the process, plus review and testing, rather than writing code by hand.
