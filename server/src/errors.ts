@@ -33,7 +33,8 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
   // body-parser errors (malformed JSON, payload too large, ...) carry a 4xx status and a type.
   if (typeof err?.status === "number" && err.status >= 400 && err.status < 500) {
-    const code = err.type === "entity.parse.failed" ? "INVALID_JSON" : "BAD_REQUEST";
+    const code =
+      err.type === "entity.parse.failed" ? "INVALID_JSON" : err.type === "entity.too.large" ? "PAYLOAD_TOO_LARGE" : "BAD_REQUEST";
     const message = err.type === "entity.parse.failed" ? "Request body is not valid JSON" : err.message;
     res.status(err.status).json({ error: { code, message } });
     return;

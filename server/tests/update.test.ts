@@ -157,6 +157,11 @@ describe("PATCH /api/tickets/:id — validation", () => {
     expect(text.body.error.code).toBe("UNSUPPORTED_MEDIA_TYPE");
   });
 
+  it("413 for an oversized body", async () => {
+    const res = await patch(3, { version: 1, status: "open", note: "x".repeat(20_000) }).expect(413);
+    expect(res.body.error.code).toBe("PAYLOAD_TOO_LARGE");
+  });
+
   it("400 for a malformed ticket id", async () => {
     await patch("abc", { version: 1, status: "open" }).expect(400);
   });
